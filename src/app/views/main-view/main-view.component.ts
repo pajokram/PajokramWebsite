@@ -20,6 +20,14 @@ export class MainViewComponent {
     isPost?: boolean
   }[] = [
     {
+      img: "images/projects/2026_stickermania.png",
+      originalWidth: 800,
+      originalHeight: 800,
+      title: "Stickermania",
+      subtitle: "2026",
+      link: "https://github.com/pajokram/stickermania"
+    },
+    {
       img: "images/projects/2025_04_grannies_gotcha.png",
       originalWidth: 800,
       originalHeight: 800,
