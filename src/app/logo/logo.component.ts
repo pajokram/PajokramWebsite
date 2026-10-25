@@ -24,12 +24,14 @@ export class LogoComponent implements AfterViewInit {
   private tweens: gsap.core.Tween[] = [];
 
   letters = [
-    {format: 'svg/letter_spritesheet.svg#joscco_0_%s', default: '0', alt: "J", alternatives: ['1', '2', '3', '4', '5']},
-    {format: 'svg/letter_spritesheet.svg#joscco_1_%s', default: '0', alt: "o", alternatives: ['1', '2', '3', '4', '5']},
-    {format: 'svg/letter_spritesheet.svg#joscco_2_%s', default: '0', alt: "s", alternatives: ['1', '2', '3', '4', '5']},
-    {format: 'svg/letter_spritesheet.svg#joscco_3_%s', default: '0', alt: "c", alternatives: ['1', '2', '3', '4', '5']},
-    {format: 'svg/letter_spritesheet.svg#joscco_4_%s', default: '0', alt: "c", alternatives: ['1', '2', '3', '4', '5']},
-    {format: 'svg/letter_spritesheet.svg#joscco_5_%s', default: '0', alt: "o", alternatives: ['1', '2', '3', '4', '5']}
+    {format: 'svg/letter_spritesheet.svg#p_%s', default: '0', alt: "p", alternatives: ['1', '2', '3', '4', '5', '6']},
+    {format: 'svg/letter_spritesheet.svg#a_%s', default: '0', alt: "a", alternatives: ['1', '2', '3', '4', '5', '6', '7', '8', '9']},
+    {format: 'svg/letter_spritesheet.svg#j_%s', default: '0', alt: "j", alternatives: ['1', '2', '3', '4', '5', '6', '7', '8']},
+    {format: 'svg/letter_spritesheet.svg#o_%s', default: '0', alt: "o", alternatives: ['1', '2', '3', '4', '5', '6', '7', '8', '9']},
+    {format: 'svg/letter_spritesheet.svg#k_%s', default: '0', alt: "k", alternatives: ['1', '2', '3', '4', '5', '6', '7']},
+    {format: 'svg/letter_spritesheet.svg#r_%s', default: '0', alt: "r", alternatives: ['1', '2', '3', '4', '5', '6']},
+    {format: 'svg/letter_spritesheet.svg#a_%s', default: '0', alt: "a", alternatives: ['1', '2', '3', '4', '5', '6', '7', '8', '9']},
+    {format: 'svg/letter_spritesheet.svg#m_%s', default: '0', alt: "m", alternatives: ['1', '2', '3', '4', '5', '6']}
   ];
 
   ngAfterViewInit() {
