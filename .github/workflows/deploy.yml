@@ -14,7 +14,8 @@ jobs:
       - name: Create Node Environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
+          cache: 'npm'
       - run: npm ci
       - run: npm run build
       - name: Prepare and deploy
