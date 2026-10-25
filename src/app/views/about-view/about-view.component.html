@@ -13,36 +13,16 @@
         dogs.
       </div>
     </div>
-    <div class="w-full h-full flex flex-col justify-end"
-         (pointermove)="onPointerMove($event)"
-         (pointerup)="onPointerUp()"
-         (pointerleave)="onPointerUp()"
-         #deskWrapper
-    >
+    <div class="w-full h-full flex flex-col justify-end" #deskWrapper>
       <div class="relative left-1/2 -translate-x-1/2" [style.width.px]="deskWidth">
         <!-- Tischfläche -->
-        <div
-          class="bottom-0 h-[200px] z-0"
-          #desk
-        >
+        <div class="bottom-0 h-[200px] z-0">
           <!-- Desk Image -->
           <svg viewBox="0 0 595.28 41.67"
                class="absolute left-1/2 -translate-x-1/2 min-w-[850px] pointer-events-none"
                aria-hidden="true">
             <use href="#about-divider"/>
           </svg>
-          <!-- Buttons -->
-          @if (!isTouchUser && !isCompact) {
-            <div class="absolute right-28 bottom-[200px] flex flex-col w-16 gap-2 z-50 text-sm">
-                <svg (mouseenter)="onEditOver($event.target)" (mouseleave)="onEditOut($event.target)" (click)="toggleEditMode($event.target)"
-                     [attr.viewBox]="isEditMode ? '0 0 100 100' : '0 0 100 100'"
-                     class="inline-block w-16 h-16 cursor-pointer"
-                     #editButton>
-                  <use [attr.href]="isEditMode ? '#about-lock' : '#about-move'"/>
-                </svg>
-            </div>
-          }
-
           @for (item of items; track item.id) {
             <!-- Wrapper-div übernimmt Positionierung + CSS-translateX(-50%).
                  Das innere SVG bekommt ausschließlich GSAP-Transforms → kein Konflikt. -->
@@ -55,7 +35,6 @@
                    [attr.width]="getSvgWidth(item)"
                    [attr.height]="getSvgHeight(item)"
                    class="cursor-pointer select-none overflow-visible block"
-                   (pointerdown)="onPointerDown($event, item.id)"
                    (mouseenter)="focus(item, $event)"
                    (mouseleave)="unfocus(item)"
                    (click)="cycleState($event, item)"

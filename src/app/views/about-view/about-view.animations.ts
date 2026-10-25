@@ -7,7 +7,6 @@ export class AboutViewAnimations {
   private itemRefs?: QueryList<ElementRef<SVGElement>>;
   private itemChanges?: Subscription;
   private itemTweens = new Map<SVGElement, gsap.core.Tween>();
-  private editButtonTween?: gsap.core.Tween;
 
   connectItems(itemRefs: QueryList<ElementRef<SVGElement>>) {
     this.itemChanges?.unsubscribe();
@@ -53,71 +52,9 @@ export class AboutViewAnimations {
     this.itemRefs?.forEach(ref => this.animateItemScale(ref.nativeElement, 1));
   }
 
-  setItemsWiggling(enabled: boolean) {
-    this.killItemTweens();
-
-    this.itemRefs?.forEach(ref => {
-      const element = ref.nativeElement;
-      if (!enabled) {
-        gsap.set(element, {
-          rotation: 0,
-          transformBox: 'fill-box',
-          transformOrigin: '50% 50%'
-        });
-        return;
-      }
-
-      const tween = gsap.fromTo(element, {rotation: -0.5}, {
-        rotation: 0.5,
-        duration: 0.1,
-        ease: 'power1.inOut',
-        repeat: -1,
-        yoyo: true,
-        transformBox: 'fill-box',
-        transformOrigin: '50% 50%'
-      });
-      this.itemTweens.set(element, tween);
-    });
-  }
-
-  animateEditButtonHover(target: HTMLElement, hovered: boolean) {
-    this.editButtonTween?.kill();
-    this.editButtonTween = gsap.to(target, {
-      scale: hovered ? 1.1 : 1,
-      duration: 0.2,
-      ease: 'power2.out',
-      transformBox: 'fill-box',
-      transformOrigin: '50% 50%'
-    });
-  }
-
-  animateEditButtonSwap(target: HTMLElement, swapMode: () => void) {
-    this.editButtonTween?.kill();
-    const previousScale = gsap.getProperty(target, 'scale');
-
-    this.editButtonTween = gsap.to(target, {
-      scale: 0.85,
-      duration: 0.1,
-      ease: 'power2.out',
-      transformBox: 'fill-box',
-      transformOrigin: '50% 50%',
-      onComplete: () => {
-        swapMode();
-        this.editButtonTween = gsap.to(target, {
-          scale: previousScale,
-          duration: 0.1,
-          ease: 'power2.out',
-          transformBox: 'fill-box',
-          transformOrigin: '50% 50%'
-        });
-      }
-    });
-  }
-
   destroy() {
     this.itemChanges?.unsubscribe();
     this.killItemTweens();
-    this.editButtonTween?.kill();
   }
 
   private initializeItemTransforms() {

@@ -41,14 +41,10 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
   @HostBinding('class') class = 'h-full flex flex-col';
 
   @ViewChild('deskWrapper', {static: true}) deskWrapper!: ElementRef;
-  @ViewChild('desk', {static: true}) desk!: ElementRef;
   @ViewChildren('item') itemRefs!: QueryList<ElementRef<SVGElement>>;
-
-  editButton?: HTMLElement;
 
   maxDeskWidth = 1000;
   deskWidth = 0;
-  isEditMode = false;
   isTouchUser = false;
   isCompact = false;
   requestedTooltip: AnimatedTooltipData | null = null;
@@ -56,8 +52,6 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
   defaultItems: DeskItem[] = AboutItems.map(item => ({...item, currentStateIndex: 0}));
 
   items: DeskItem[] = [];
-  draggingId: string | null = null;
-  dragOffset = {x: 0, y: 0};
 
   private resizeObserver?: ResizeObserver;
 
@@ -88,60 +82,21 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
     this.animations.destroy();
   }
 
-  toggleEditMode(target: EventTarget | null, newMode: boolean = !this.isEditMode) {
-    if (this.isEditMode === newMode) return;
-    this.animations.animateEditButtonSwap(target as HTMLElement, () => {
-      this.isEditMode = newMode;
-      this.cdr.detectChanges();
-    });
-    this.animations.setItemsWiggling(newMode);
-  }
-
   getScreenX(relX: number): number {
     return this.deskWidth / 2 + relX;
-  }
-
-  getRelativeX(screenX: number): number {
-    return screenX - this.deskWidth / 2;
   }
 
   resizeTableAndRepositionItems() {
     this.deskWidth = Math.min(this.deskWrapper.nativeElement.offsetWidth, this.maxDeskWidth);
     this.isCompact = window.innerWidth < 768;
-    if (this.isCompact && this.editButton) {
-      this.toggleEditMode(this.editButton, false)
-    }
     this.items = this.isCompact
       ? this.defaultItems.filter(item => item.showOnSmallScreen)
       : [...this.defaultItems];
     this.cdr.detectChanges();
   }
 
-  onPointerDown(event: PointerEvent, itemId: string) {
-    if (!this.isEditMode || this.isTouchUser) return;
-    this.draggingId = itemId;
-    const item = this.items.find(i => i.id === itemId);
-    if (!item) return;
-    this.dragOffset.x = event.clientX - this.getScreenX(item.x);
-    this.dragOffset.y = event.clientY - item.y;
-    event.preventDefault();
-  }
-
-  onPointerMove(event: PointerEvent) {
-    if (!this.draggingId || !this.isEditMode || this.isTouchUser) return;
-    const item = this.items.find(i => i.id === this.draggingId);
-    if (!item) return;
-    item.x = Math.round(this.getRelativeX(event.clientX - this.dragOffset.x));
-    item.y = Math.round(event.clientY - this.dragOffset.y);
-    event.preventDefault();
-  }
-
-  onPointerUp() {
-    this.draggingId = null;
-  }
-
   cycleState(event: MouseEvent, item: DeskItem) {
-    if (this.isEditMode || !item.states || item.states.length <= 1) return;
+    if (!item.states || item.states.length <= 1) return;
     const nextState = ((item.currentStateIndex ?? 0) + 1) % item.states.length;
     this.animations.animateStateChange(event.currentTarget as SVGElement, () => {
       item.currentStateIndex = nextState;
@@ -180,7 +135,6 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
 
   focus(item: DeskItem, event: MouseEvent) {
     if (this.isTouchUser) return;
-    if (this.isEditMode) return;
     this.showTooltip(item);
     this.animations.resetItemScales();
     // Use currentTarget (the <svg>) – event.target may be the inner <use>
@@ -189,7 +143,6 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
 
   unfocus(item: DeskItem) {
     if (this.isTouchUser) return;
-    if (this.isEditMode) return;
     // A delayed mouseleave from the previous item must not cancel a newer tooltip.
     if (this.requestedTooltip?.id === item.id) {
       this.requestedTooltip = null;
@@ -219,12 +172,4 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
     return item.topOffsetsTooltip[item.states?.[item.currentStateIndex ?? 0] ?? ''] || 0
   }
 
-  onEditOver(target: EventTarget | null) {
-    this.editButton = target as HTMLElement;
-    this.animations.animateEditButtonHover(target as HTMLElement, true);
-  }
-
-  onEditOut(target: EventTarget | null) {
-    this.animations.animateEditButtonHover(target as HTMLElement, false);
-  }
 }
