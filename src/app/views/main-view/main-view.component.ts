@@ -1,9 +1,10 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {ProjectsMasonryComponent} from '../../projects-masonry/projects-masonry.component';
 
 @Component({
   selector: 'app-main-view',
   templateUrl: './main-view.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ProjectsMasonryComponent,
   ]
@@ -52,8 +53,8 @@ export class MainViewComponent {
     },
     {
       img: "images/projects/2022_08_schick.png",
-      originalWidth: 799,
-      originalHeight: 1161,
+      originalWidth: 800,
+      originalHeight: 1165,
       title: "Schick #15",
       subtitle: "August 2022",
       link: "pdf/schick_15_schmitz.pdf"

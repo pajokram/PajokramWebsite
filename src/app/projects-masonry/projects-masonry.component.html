@@ -1,31 +1,33 @@
 <div #resizeContainer
      class="relative w-full"
-     [class.transition-all]="hasInitialized"
-     [class.duration-300]="hasInitialized"
-     style="opacity: 0"
      [ngStyle]="{'height.px': height}">
   @for (item of (columns | async) ?? []; track item.img) {
     <div class="absolute transition-all duration-200"
-         [ngStyle]="{'top.px': item.y, 'left.px': item.left, 'width.px': item.width }">
-      <a (click)="onImageClick(item)" class="relative w-full h-full
-            text-[1.2rem] font-bold
-            flex flex-col items-center justify-center"
-      [ngClass]="{'cursor-pointer': item.link}">
-        <!-- Skeleton placeholder: visible until the image finishes loading -->
-        @if (!loadedImages.has(item.img)) {
-          <div class="w-full bg-gray-200 animate-pulse rounded"
-               [ngStyle]="{'aspect-ratio': item.aspectRatio}">
-          </div>
-        }
-        <img [src]="item.img" alt="item.name"
-             class="w-full h-auto"
-             [ngClass]="{'hidden': !loadedImages.has(item.img)}"
+         [ngStyle]="{
+           'top.px': item.y,
+           'left.px': item.left,
+           'width.px': item.width,
+           'aspect-ratio': item.aspectRatio
+         }">
+      <a (click)="onImageClick(item)"
+         class="relative block w-full h-full overflow-hidden bg-slate-200 text-[1.2rem] font-bold"
+         [ngClass]="{'cursor-pointer': item.link}">
+        <div class="absolute inset-0 z-0 bg-slate-200 transition-opacity duration-300"
+             [class.opacity-0]="loadedImages.has(item.img)"
+             aria-hidden="true">
+          <div class="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-300 via-slate-200 to-slate-300"></div>
+        </div>
+        <img [src]="item.img" [alt]="item.title ?? ''"
+             decoding="async"
+             class="absolute inset-0 z-10 block w-full h-full object-cover transition-opacity duration-300"
+             [class.opacity-0]="!loadedImages.has(item.img)"
+             [class.opacity-100]="loadedImages.has(item.img)"
              (load)="onImageLoad(item.img)">
         <div [ngClass]="{
               'bg-opacity-75 text-opacity-100': clickedItem === item.img || hoveredItem === item.img,
               'bg-opacity-0 text-opacity-0': clickedItem !== item.img && hoveredItem !== item.img
             }"
-             class="absolute w-full h-full bg-black text-white
+             class="absolute z-20 w-full h-full bg-black text-white
               flex flex-col items-center justify-center p-4
               transition-all duration-300"
              (pointerenter)="onPointerEnter($event, item)"

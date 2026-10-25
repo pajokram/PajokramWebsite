@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, QueryList, ViewChildren} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, QueryList, ViewChildren, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {gsap} from 'gsap';
 
@@ -14,6 +14,7 @@ interface LetterData {
   imports: [
     RouterLink
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './logo.component.html'
 })
 export class LogoComponent implements AfterViewInit {

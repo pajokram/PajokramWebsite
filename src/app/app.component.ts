@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {NavigationStart, Router, RouterOutlet} from '@angular/router';
 import {NavBarComponent} from './nav-bar/nav-bar.component';
 import {AppFooterComponent} from './app-footer/app-footer.component';
@@ -13,6 +13,7 @@ import gsap from 'gsap';
     NavBarComponent,
     AppFooterComponent
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit {

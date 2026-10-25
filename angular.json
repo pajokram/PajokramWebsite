@@ -28,7 +28,10 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "ignore": [
+                  "index.html"
+                ]
               }
             ],
             "styles": [
@@ -38,9 +41,7 @@
             ],
             "scripts": [
               "node_modules/prismjs/prism.js",
-              "node_modules/prismjs/components/prism-python.min.js",
-              "node_modules/katex/dist/katex.min.js",
-              "node_modules/katex/dist/contrib/auto-render.min.js"
+              "node_modules/prismjs/components/prism-python.min.js"
             ]
           },
           "configurations": {
@@ -94,7 +95,10 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "ignore": [
+                  "index.html"
+                ]
               }
             ],
             "styles": [
@@ -134,6 +138,11 @@
     },
     "@schematics/angular:resolver": {
       "typeSeparator": "."
+    }
+  },
+  "cli": {
+    "cache": {
+      "enabled": false
     }
   }
 }

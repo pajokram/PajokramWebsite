@@ -7,7 +7,8 @@ import {
   OnInit,
   QueryList,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import gsap from 'gsap';
 import {AboutItems} from './about-items';
@@ -28,6 +29,7 @@ export interface DeskItem {
 @Component({
   selector: 'app-about-view',
   templateUrl: './about-view.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: []
 })
 export class AboutViewComponent implements OnInit, AfterViewInit {

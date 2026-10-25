@@ -3,16 +3,16 @@ import {AppComponent} from './app/app.component';
 import {APP_INITIALIZER, provideZoneChangeDetection} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {routes} from './app/app.routes';
-import {MarkdownModule} from 'ngx-markdown';
-import {provideHttpClient} from '@angular/common/http';
+import {provideMarkdown} from 'ngx-markdown';
+import {HttpClient, provideHttpClient, withXhr} from '@angular/common/http';
 import {SvgSpriteService} from './app/svg-sprite.service';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection({eventCoalescing: true}),
     provideRouter(routes),
-    provideHttpClient(),
-    ...MarkdownModule.forRoot().providers ?? [],
+    provideHttpClient(withXhr()),
+    provideMarkdown({loader: HttpClient}),
     {
       provide: APP_INITIALIZER,
       useFactory: (spriteService: SvgSpriteService) => () => spriteService.load(),

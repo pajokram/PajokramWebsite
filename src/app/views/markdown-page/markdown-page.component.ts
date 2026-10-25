@@ -1,14 +1,14 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MarkdownComponent, MarkdownModule} from 'ngx-markdown';
+import {MarkdownComponent} from 'ngx-markdown';
 import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-markdown-page',
   imports: [
-    MarkdownModule,
     MarkdownComponent
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './markdown-page.component.html'
 })
 export class MarkdownPageComponent implements OnInit {
@@ -17,7 +17,8 @@ export class MarkdownPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -29,6 +30,7 @@ export class MarkdownPageComponent implements OnInit {
       this.http.get(filePath, {responseType: 'text'}).subscribe({
         next: () => {
           this.fileName = filePath;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.router.navigate(['/not-found']).then();

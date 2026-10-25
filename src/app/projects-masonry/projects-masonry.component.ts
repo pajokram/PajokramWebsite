@@ -1,18 +1,17 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   Input,
   OnDestroy,
-  OnInit,
   ViewChild,
   HostListener,
   inject
 } from '@angular/core';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {ReplaySubject} from 'rxjs';
-import {Router} from '@angular/router';
-import gsap from 'gsap';
 
 @Component({
   selector: 'app-projects-masonry',
@@ -22,11 +21,12 @@ import gsap from 'gsap';
     NgClass
   ],
   templateUrl: './projects-masonry.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'w-full'
   }
 })
-export class ProjectsMasonryComponent implements AfterViewInit, OnInit, OnDestroy {
+export class ProjectsMasonryComponent implements AfterViewInit, OnDestroy {
 
   @Input() items?: {
     img: string;
@@ -38,11 +38,10 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnInit, OnDestro
   }[];
   @Input() colLimits?: [minPixels: number, rows: number][];
 
-  router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   columnGap = 16;
   height = 0;
-  hasInitialized = false;
   clickedItem?: string;
   hoveredItem?: string;
   loadedImages = new Set<string>();
@@ -60,8 +59,6 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnInit, OnDestro
     subtitle?: string
   }[]> = new ReplaySubject(0);
   private resizeObserver?: ResizeObserver;
-
-  ngOnInit() {}
 
   ngAfterViewInit() {
     this.resizeObserver = new ResizeObserver(() => this.updateColumns());
@@ -96,24 +93,14 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnInit, OnDestro
       });
       this.columns.next(itemsByColumn);
       this.height = Math.max(...heights) - this.columnGap;
-
-      if (!this.hasInitialized) {
-        this.hasInitialized = true;
-        // Let Angular render the items at their final positions first,
-        // then fade the whole grid in – no top-to-bottom "build" effect.
-        requestAnimationFrame(() => {
-          gsap.fromTo(this.masonryContainer.nativeElement,
-            {opacity: 0},
-            {opacity: 1, duration: 0.4, ease: 'power1.inOut'}
-          );
-        });
-      }
+      this.cdr.markForCheck();
     }
   }
 
 
   onImageLoad(src: string) {
     this.loadedImages = new Set([...this.loadedImages, src]);
+    this.cdr.markForCheck();
   }
 
   onImageClick(item: any) {

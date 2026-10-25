@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {LogoComponent} from '../logo/logo.component';
 import {NavItemComponent} from '../nav-item/nav-item.component';
 
@@ -8,6 +8,7 @@ import {NavItemComponent} from '../nav-item/nav-item.component';
     LogoComponent,
     NavItemComponent
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './nav-bar.component.html'
 })
 export class NavBarComponent {
