@@ -40,7 +40,7 @@ export const AboutItems: DeskItem[] = [
       "treetrunks"
     ],
     "stateTooltips": {
-      "dino": "Roar means I love you in dinosaur.",
+      "dino": "'Roar' means 'I love you' in dinosaur.",
       "lama": "No drama, just llama.",
       "buddha": "Ommmm.",
       "treetrunks": "Have you tried my apple pie?"
@@ -119,7 +119,7 @@ export const AboutItems: DeskItem[] = [
       "iced_coffee"
     ],
     "stateTooltips": {
-      "coffee": "Because adulting is hard.",
+      "coffee": "Coffee. Because adulting is hard.",
       "iced_coffee": "Summer mode: Activated."
     },
     "currentStateIndex": 1

@@ -10,9 +10,13 @@ import {
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
-import gsap from 'gsap';
 import {AboutItems} from './about-items';
 import {SVG_SPRITE_META} from '../../svg-sprite-meta';
+import {
+  AnimatedTooltipComponent,
+  AnimatedTooltipData
+} from '../../animated-tooltip/animated-tooltip.component';
+import {AboutViewAnimations} from './about-view.animations';
 
 export interface DeskItem {
   id: string;
@@ -30,14 +34,15 @@ export interface DeskItem {
   selector: 'app-about-view',
   templateUrl: './about-view.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: []
+  imports: [AnimatedTooltipComponent],
+  providers: [AboutViewAnimations]
 })
 export class AboutViewComponent implements OnInit, AfterViewInit {
   @HostBinding('class') class = 'h-full flex flex-col';
 
   @ViewChild('deskWrapper', {static: true}) deskWrapper!: ElementRef;
   @ViewChild('desk', {static: true}) desk!: ElementRef;
-  @ViewChildren('item') itemRefs!: QueryList<ElementRef>;
+  @ViewChildren('item') itemRefs!: QueryList<ElementRef<SVGElement>>;
 
   editButton?: HTMLElement;
 
@@ -46,10 +51,7 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   isTouchUser = false;
   isCompact = false;
-  hoveredTooltip: { id: string, x: number, y: number, text: string } | null = null;
-  tooltipTween?: gsap.core.Tween
-  itemTweens: gsap.core.Tween[] = [];
-  editButtonTween?: gsap.core.Tween;
+  requestedTooltip: AnimatedTooltipData | null = null;
 
   defaultItems: DeskItem[] = AboutItems.map(item => ({...item, currentStateIndex: 0}));
 
@@ -59,7 +61,10 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
 
   private resizeObserver?: ResizeObserver;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private animations: AboutViewAnimations
+  ) {
   }
 
   ngOnInit() {
@@ -75,29 +80,21 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
     this.resizeObserver = new ResizeObserver(() => this.resizeTableAndRepositionItems());
     this.resizeObserver.observe(this.deskWrapper.nativeElement);
 
-    const initItems = () => {
-      this.itemRefs.forEach(ref => {
-        gsap.set(ref.nativeElement, {
-          transformBox: 'fill-box',
-          transformOrigin: '50% 50%',
-        });
-      });
-    };
-    initItems();
-    this.itemRefs.changes.subscribe(initItems);
+    this.animations.connectItems(this.itemRefs);
   }
 
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
-    this.itemTweens.forEach(tween => tween.kill());
-    this.tooltipTween?.kill();
-    this.editButtonTween?.kill();
+    this.animations.destroy();
   }
 
   toggleEditMode(target: EventTarget | null, newMode: boolean = !this.isEditMode) {
     if (this.isEditMode === newMode) return;
-    this.swapEditButton(target as HTMLElement, newMode);
-    newMode ? this.startWiggle() : this.stopWiggle();
+    this.animations.animateEditButtonSwap(target as HTMLElement, () => {
+      this.isEditMode = newMode;
+      this.cdr.detectChanges();
+    });
+    this.animations.setItemsWiggling(newMode);
   }
 
   getScreenX(relX: number): number {
@@ -144,21 +141,11 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
   }
 
   cycleState(event: MouseEvent, item: DeskItem) {
-    if (this.isEditMode || !item.states) return;
+    if (this.isEditMode || !item.states || item.states.length <= 1) return;
     const nextState = ((item.currentStateIndex ?? 0) + 1) % item.states.length;
-    // Use currentTarget (the <svg>) – event.target might be the inner <use> element
-    const el = event.currentTarget as HTMLElement;
-    gsap.fromTo(el, {scale: 1}, {
-      scale: 0.85, duration: 0.1, ease: 'power2.out',
-      transformBox: 'fill-box', transformOrigin: '50% 50%',
-      onComplete: () => {
-        item.currentStateIndex = nextState;
-        this.showTooltip(item); // refresh tooltip text for new state
-        gsap.to(el, {
-          scale: 1, duration: 0.1, ease: 'power2.out',
-          transformBox: 'fill-box', transformOrigin: '50% 50%'
-        });
-      }
+    this.animations.animateStateChange(event.currentTarget as SVGElement, () => {
+      item.currentStateIndex = nextState;
+      this.showTooltip(item);
     });
   }
 
@@ -195,16 +182,19 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
     if (this.isTouchUser) return;
     if (this.isEditMode) return;
     this.showTooltip(item);
-    this.rescaleItems();
+    this.animations.resetItemScales();
     // Use currentTarget (the <svg>) – event.target may be the inner <use>
-    this.scaleItem(event.currentTarget as HTMLElement);
+    this.animations.scaleItem(event.currentTarget as SVGElement);
   }
 
-  unfocus() {
+  unfocus(item: DeskItem) {
     if (this.isTouchUser) return;
     if (this.isEditMode) return;
-    this.hideTooltip();
-    this.rescaleItems();
+    // A delayed mouseleave from the previous item must not cancel a newer tooltip.
+    if (this.requestedTooltip?.id === item.id) {
+      this.requestedTooltip = null;
+    }
+    this.animations.resetItemScales();
   }
 
   getTooltip(item: DeskItem): string {
@@ -216,141 +206,25 @@ export class AboutViewComponent implements OnInit, AfterViewInit {
     const tooltipText = this.getTooltip(item);
     if (!tooltipText) return;
 
-    this.tooltipTween?.kill();
-
-    // Set position & text first so the element exists in the DOM before GSAP touches it
-    const x = item.x;
-    const y = item.y - this.getTooltipOffset(item);
-    const alreadyVisible = this.hoveredTooltip != null;
-    this.hoveredTooltip = {id: item.id, x, y, text: tooltipText};
+    this.requestedTooltip = {
+      id: item.id,
+      x: item.x,
+      y: item.y - this.getTooltipOffset(item),
+      text: tooltipText
+    };
     this.cdr.detectChanges();
-
-    const el = document.getElementById('tooltip-box');
-    if (el) {
-      if (alreadyVisible) {
-        // Tooltip already visible (state cycling via click): keep it visible and do a
-        // subtle scale-pop from center so the top edge never shifts visually.
-        // xPercent: -50 is always passed explicitly so GSAP fully owns the x-centering
-        // and never loses it when switching transformOrigin between animations.
-        this.tooltipTween = gsap.fromTo(el,
-          {scale: 0.9, xPercent: -50, transformOrigin: '50% 50%'},
-          {scale: 1, xPercent: -50, duration: 0.2, ease: 'back.out(2)', transformOrigin: '50% 50%'}
-        );
-      } else {
-        this.tooltipTween = gsap.fromTo(el,
-          {opacity: 0, scale: 0.9, xPercent: -50, transformOrigin: '50% 100%'},
-          {opacity: 1, scale: 1, xPercent: -50, duration: 0.25, ease: 'power2.out', transformOrigin: '50% 100%'}
-        );
-      }
-    }
-  }
-
-  hideTooltip() {
-    const el = document.getElementById('tooltip-box');
-    this.tooltipTween?.kill();
-    if (el) {
-      // Animate out first, THEN remove from DOM
-      this.tooltipTween = gsap.to(el, {
-        opacity: 0, scale: 0.9, xPercent: -50, duration: 0.2, ease: 'power2.in',
-        transformOrigin: '50% 100%',
-        onComplete: () => {
-          this.hoveredTooltip = null;
-          this.cdr.detectChanges();
-        }
-      });
-    } else {
-      this.hoveredTooltip = null;
-    }
-  }
-
-  private rescaleItems() {
-    this.itemTweens.forEach(tween => tween.kill());
-    this.itemTweens = [];
-    this.itemRefs.forEach(ref => {
-      const el = ref.nativeElement;
-      this.itemTweens.push(gsap.to(el, {
-        scale: 1, duration: 0.2, ease: 'power2.out',
-        transformBox: 'fill-box', transformOrigin: '50% 50%',
-      }));
-    });
-  }
-
-  private scaleItem(el: HTMLElement) {
-    this.itemTweens = this.itemTweens.filter(tween => {
-      if (tween.targets().includes(el)) {
-        tween.kill();
-        return false;
-      }
-      return true;
-    });
-    if (el) {
-      this.itemTweens.push(gsap.to(el, {
-        scale: 1.05, duration: 0.2, ease: 'power2.out',
-        transformBox: 'fill-box', transformOrigin: '50% 50%',
-      }));
-    }
   }
 
   private getTooltipOffset(item: DeskItem) {
     return item.topOffsetsTooltip[item.states?.[item.currentStateIndex ?? 0] ?? ''] || 0
   }
 
-  private startWiggle() {
-    this.itemRefs.forEach(item => {
-      const el = item.nativeElement;
-      const tween = gsap.fromTo(el, {rotation: -.5}, {
-        rotation: .5,
-        duration: 0.1,
-        ease: 'power1.inOut',
-        repeat: -1,
-        yoyo: true,
-        transformBox: 'fill-box',
-        transformOrigin: '50% 50%',
-      });
-      this.itemTweens.push(tween);
-    });
-  }
-
-  private stopWiggle() {
-    this.itemTweens.forEach(tween => tween.kill());
-    this.itemTweens = [];
-    this.itemRefs.forEach(item => {
-      const el = item.nativeElement;
-      gsap.set(el, {rotation: 0, transformBox: 'fill-box', transformOrigin: '50% 50%'});
-    });
-  }
-
   onEditOver(target: EventTarget | null) {
     this.editButton = target as HTMLElement;
-    this.editButtonTween?.kill();
-    this.editButtonTween = gsap.to(target, {
-      scale: 1.1, duration: 0.2, ease: 'power2.out',
-      transformBox: 'fill-box', transformOrigin: '50% 50%',
-    });
+    this.animations.animateEditButtonHover(target as HTMLElement, true);
   }
 
   onEditOut(target: EventTarget | null) {
-    this.editButtonTween?.kill();
-    this.editButtonTween = gsap.to(target, {
-      scale: 1, duration: 0.2, ease: 'power2.out',
-      transformBox: 'fill-box', transformOrigin: '50% 50%',
-    });
-  }
-
-  private swapEditButton(target: HTMLElement, newMode: boolean) {
-    this.editButtonTween?.kill();
-    const previousScale = gsap.getProperty(target, 'scale');
-    this.editButtonTween = gsap.to(target, {
-      scale: 0.85, duration: 0.1, ease: 'power2.out',
-      transformBox: 'fill-box', transformOrigin: '50% 50%',
-      onComplete: () => {
-        this.isEditMode = newMode;
-        this.cdr.detectChanges();
-        gsap.to(target, {
-          scale: previousScale, duration: 0.1, ease: 'power2.out',
-          transformBox: 'fill-box', transformOrigin: '50% 50%',
-        });
-      }
-    });
+    this.animations.animateEditButtonHover(target as HTMLElement, false);
   }
 }

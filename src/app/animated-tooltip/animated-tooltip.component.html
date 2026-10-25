@@ -1,0 +1,13 @@
+@if (displayedTooltip) {
+  <div
+    #tooltipBox
+    class="absolute pointer-events-none z-50 px-3 py-1 text-sm rounded-lg text-white bg-black shadow"
+    [style.left]="'calc(50% + ' + displayedTooltip.x + 'px)'"
+    [style.top.px]="displayedTooltip.y"
+  >
+    {{ displayedTooltip.text }}
+    <svg class="absolute left-1/2 -translate-x-1/2 -bottom-2" width="20" height="10" viewBox="0 0 20 10">
+      <polygon points="0,0 10,10 20,0" fill="black"/>
+    </svg>
+  </div>
+}

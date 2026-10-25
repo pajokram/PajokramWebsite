@@ -57,7 +57,7 @@
                    class="cursor-pointer select-none overflow-visible block"
                    (pointerdown)="onPointerDown($event, item.id)"
                    (mouseenter)="focus(item, $event)"
-                   (mouseleave)="unfocus()"
+                   (mouseleave)="unfocus(item)"
                    (click)="cycleState($event, item)"
               >
                 <use [attr.href]="getSymbolRef(item)"/>
@@ -65,19 +65,7 @@
             </div>
           }
         </div>
-        @if (hoveredTooltip) {
-          <div
-            [id]="'tooltip-box'"
-            class="absolute pointer-events-none z-50 px-3 py-1 text-sm rounded-lg text-white bg-black shadow"
-            [style.left.px]="getScreenX(hoveredTooltip.x)"
-            [style.top.px]="hoveredTooltip.y"
-          >
-            {{ hoveredTooltip.text }}
-            <svg class="absolute left-1/2 -translate-x-1/2 -bottom-2" width="20" height="10" viewBox="0 0 20 10">
-              <polygon points="0,0 10,10 20,0" fill="black"/>
-            </svg>
-          </div>
-        }
+        <app-animated-tooltip [tooltip]="requestedTooltip"/>
       </div>
     </div>
   </div>
