@@ -1,13 +1,13 @@
 <a routerLink="" class="flex flex-col items-center gap-2" (click)="playAnimation()">
-  <div class="flex -space-x-3 items-center">
+  <div class="flex -space-x-2 items-center">
     @for (letter of letters; track letter.format) {
-      <div class="relative h-14 w-14">
-        <svg class="icon absolute h-14 w-14">
+      <div class="relative h-12 w-12">
+        <svg class="icon absolute h-12 w-12">
           <use [attr.xlink:href]="getSrcString(letter)" #letterImg></use>
         </svg>
       </div>
     }
   </div>
   <h1 class="sr-only">Jonathan Neuser-Schmitz</h1>
-  <svg viewBox="0 0 398.13 16.38" class="w-80" aria-hidden="true"><use href="#name"/></svg>
+  <svg viewBox="0 0 398.13 16.38" class="w-64" aria-hidden="true"><use href="#name"/></svg>
 </a>
