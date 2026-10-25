@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {ReplaySubject} from 'rxjs';
+import gsap from 'gsap';
 
 @Component({
   selector: 'app-projects-masonry',
@@ -44,7 +45,7 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnDestroy {
   height = 0;
   clickedItem?: string;
   hoveredItem?: string;
-  loadedImages = new Set<string>();
+  private readonly animationContext = gsap.context(() => {});
 
   @ViewChild('resizeContainer', {static: false}) masonryContainer!: ElementRef;
 
@@ -67,6 +68,7 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
+    this.animationContext.revert();
   }
 
   private updateColumns() {
@@ -98,9 +100,23 @@ export class ProjectsMasonryComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  onImageLoad(src: string) {
-    this.loadedImages = new Set([...this.loadedImages, src]);
-    this.cdr.markForCheck();
+  async revealImage(image: HTMLImageElement, index: number) {
+    await image.decode().catch(() => undefined);
+    if (!image.isConnected) {
+      return;
+    }
+
+    this.animationContext.add(() => {
+      gsap.fromTo(image,
+        {autoAlpha: 0},
+        {
+          autoAlpha: 1,
+          duration: 0.45,
+          delay: index * 0.06,
+          ease: 'power1.out'
+        }
+      );
+    });
   }
 
   onImageClick(item: any) {
